@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mail List</title>
+    <link rel="shortcut icon" href="https://dci.digitechcareindia.com/assets/img/logo.webp" type="image/webp" />
+    <link rel="stylesheet" href="https://unpkg.com/98.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            outline: none;
+            font-size: 1rem !important;
+            font-family: monospace !important;
+        }
+
+        .hide {
+            display: none !important;
+        }
+
+        input[type="url"],
+        input[type="file"] {
+            padding: 3px 4px;
+            border: none;
+            background-color: #fff;
+            box-shadow: inset -1px -1px #fff, inset 1px 1px grey,
+                inset -2px -2px #dfdfdf, inset 2px 2px #0a0a0a;
+            box-sizing: border-box;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            border-radius: 0;
+            height: 21px;
+            line-height: 2;
+            outline: none;
+        }
+
+        td {
+            border: 1px solid #bdbdbd;
+        }
+
+        menu>li[aria-selected="true"] {
+            background: #66ffff !important;
+        }
+    </style>
+    <script>
+        const APP_NAME = "Mail List";
+        const APP_VERSION = "1.0.0";
+    </script>
+</head>
+
+<body class="window">
+    <div id="confirm" class="hide" style="
+        width: 100%;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        overflow: auto;
+        padding: 1rem;
+        background-color: #00000060;
+        z-index: 99999;
+        justify-content: center;
+        align-items: center;
+        display: flex;
+      ">
+        <div class="window" style="max-width: 60%; width: fit-content; height: fit-content">
+            <div class="title-bar">
+                <div class="title-bar-text">
+                    <script>document.write(APP_NAME)</script> Confermation
+                </div>
+            </div>
+            <div class="window-body">
+                <p style="font-size: 1rem; font-weight: bolder" id="confirmMsg">
+                    Message Body.
+                </p>
+                <br /><br />
+                <section class="field-row" style="justify-content: flex-end">
+                    <button id="confirmCancel">Cancel</button>
+                    <button id="confirmOk">OK</button>
+                </section>
+            </div>
+        </div>
+        <script>
+            function msgConfirm(msg, ok, cancel) {
+                document.getElementById("confirmMsg").innerHTML = msg;
+                document.getElementById("confirmOk").onclick = () => {
+                    document.getElementById("confirm").classList.add("hide");
+                    ok();
+                };
+                document.getElementById("confirmCancel").onclick = () => {
+                    document.getElementById("confirm").classList.add("hide");
+                    cancel();
+                };
+                document.getElementById("confirm").classList.remove("hide");
+            }
+        </script>
+    </div>
+
+    <div id="alert" class="hide" style="
+        width: 100%;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        overflow: auto;
+        padding: 1rem;
+        background-color: #00000060;
+        z-index: 99999;
+        justify-content: center;
+        align-items: center;
+        display: flex;
+      ">
+        <div class="window" style="max-width: 60%; width: fit-content; height: fit-content">
+            <div class="title-bar">
+                <div class="title-bar-text">
+                    <script>document.write(APP_NAME);</script> Message
+                </div>
+            </div>
+            <div class="window-body">
+                <p style="font-size: 1rem; font-weight: bolder" id="alertMsg">
+                    Message Body.
+                </p>
+                <br /><br />
+                <section class="field-row" style="justify-content: flex-end">
+                    <button id="alertOk">OK</button>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <div class="title-bar">
+        <div class="title-bar-text">
+            <script>
+                document.write(APP_NAME);
+            </script>
+            <small style="font-size: 0.7rem !important">
+                <script>
+                    document.write("v" + APP_VERSION);
+                </script>
+            </small>
+        </div>
+        <div class="hide status-bar" style="color: #ffffff; font: 0.8rem courier" id="adminId">
+            <p class="status-bar-field" style="margin-right: 0.2rem; box-shadow: none"></p>
+        </div>
+        <div class="title-bar-controls">
+            <button style="
+            width: 70px;
+            height: 30px;
+            font-size: 0.9rem;
+            font-weight: bolder;
+          " id="login">
+                Login
+            </button>
+        </div>
+    </div>
+
+    <menu style="margin-top: 1rem; white-space: nowrap; overflow-x: auto" role="tablist" id="tabs">
+        <li role="tab" aria-selected="true" data-name="dashboard">
+            <a href="javascript:void(0);">Add Mail</a>
+        </li>
+        <li role="tab" data-name="mailList">
+            <a href="javascript:void(0);">Total Mail List</a>
+        </li>
+        <li role="tab" data-name="mailer">
+            <a href="javascript:void(0);">Send Mail</a>
+        </li>
+        <li role="tab" data-name="help">
+            <a href="javascript:void(0);">Help</a>
+        </li>
+    </menu>
+
+    <div style="margin: 0" class="window-body">
+        <div class="window" role="tabpanel">
+            <div id="dashboard" class="window-body" style="
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+          ">
+                <div class="status-bar"
+                    style="width: fit-content; font-size: larger; white-space: nowrap; overflow-x: auto;">
+                    <p class="status-bar-field">
+                        Total Emails :&nbsp;
+                        <mark class="totalEmailCount" style="padding: 0 0.2rem">0</mark>
+                    </p>
+                    <p class="status-bar-field">
+                        Total Send Email :&nbsp;
+                        <mark class="totalSendEmailCount" style="padding: 0 0.2rem">0</mark>
+                    </p>
+                </div>
+                <br />
+
+                <div class="window" style="width: fit-content; height: fit-content">
+                    <div class="title-bar">
+                        <div class="title-bar-text">Add New Email</div>
+                    </div>
+                    <div class="window-body">
+                        <div class="field-row-stacked" style="width: 100%">
+                            <label for="emailUserName">User Name
+                                <small style="color: #474747d8; font-size: 0.7rem !important">(optanal)</small></label>
+                            <input id="emailUserName" type="text" placeholder="Enter User Name" />
+                        </div>
+                        <br />
+                        <div class="field-row-stacked" style="width: 100%">
+                            <label for="emailUserEmail">Email Address
+                                <small style="color: #c23232d8; font-size: 0.7rem !important">(required)</small></label>
+                            <input id="emailUserEmail" type="email" placeholder="Enter User Email" required />
+                        </div>
+                        <br />
+                        <div class="field-row-stacked" style="width: 100%">
+                            <label for="emailUserDes">User Description
+                                <small style="color: #474747d8; font-size: 0.7rem !important">(optanal)</small></label>
+                            <textarea id="emailUserDes" rows="8" placeholder="Enter User Description"></textarea>
+                        </div>
+                        <br />
+                        <div class="field-row" style="display: flex; justify-content: space-around">
+                            <button id="emailClear">Clear</button>
+                            <button id="emailSave" style="width: 200px">Save Email</button>
+                        </div>
+                    </div>
+                    <script>
+                        let saveEmail = document.getElementById("emailSave");
+                        let clearEmail = document.getElementById("emailClear");
+
+                        let emailUserName = document.getElementById("emailUserName");
+                        let emailUserEmail = document.getElementById("emailUserEmail");
+                        let emailUserDes = document.getElementById("emailUserDes");
+
+                        saveEmail.addEventListener("click", () => {
+                            if (
+                                emailUserEmail.value
+                            ) {
+                                saveEmail.setAttribute("disabled", "true");
+                                let bodyForm = new FormData();
+                                bodyForm.append("action", "addEmail");
+                                bodyForm.append("adminId", localStorage.getItem("adminId"));
+                                bodyForm.append("adminName", localStorage.getItem("adminName"));
+                                if (emailUserName.value) {
+                                    bodyForm.append("userName", emailUserName.value);
+                                }
+                                bodyForm.append("userEmail", emailUserEmail.value);
+                                if (emailUserDes.value) {
+                                    bodyForm.append("userDes", emailUserDes.value);
+                                }
+
+                                fetch("server.php", {
+                                    method: "POST",
+                                    body: bodyForm,
+                                })
+                                    .then((res) => res.json())
+                                    .then((results) => {
+                                        if (results.status == "success") {
+                                            msgAlert(results.message);
+                                            updateEmail();
+                                            emailUserName.value = "";
+                                            emailUserEmail.value = "";
+                                            emailUserDes.value = "";
+                                            saveEmail.removeAttribute("disabled");
+                                        } else {
+                                            msgAlert(results.message);
+                                            saveEmail.removeAttribute("disabled");
+                                        }
+                                    });
+
+                            } else {
+                                msgAlert("Please Enter Email Address First");
+                            }
+                        });
+
+                        clearEmail.addEventListener("click", () => {
+                            emailUserName.value = "";
+                            emailUserEmail.value = "";
+                            emailUserDes.value = "";
+                        });
+                    </script>
+                </div>
+            </div>
+
+            <div id="mailList" class="hide window-body" style="
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+          ">
+                <br />
+                <div class="window" style="width: 100%; height: fit-content">
+                    <div class="title-bar">
+                        <div class="title-bar-text">Email List</div>
+                        <div class="title-bar-controls">
+                            <p style="margin-right: 1rem; color: #ffffff" id="totalUsers">
+                                Total Emails: <span class="totalEmailCount">0</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="sunken-panel" style="width: 100%; max-height: 80vh">
+                        <table class="interactive emailList">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Description</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="emailTable">
+                            </tbody>
+                        </table>
+                        <script>
+                            document.querySelectorAll("table.emailList").forEach((element) => {
+                                for (
+                                    let i = 0;
+                                    i < element.children[1].children.length;
+                                    i++
+                                ) {
+                                    element.children[1].children[i].children[0].style =
+                                        "padding: 0.5rem;";
+                                }
+                                element.addEventListener("click", (event) => {
+                                    if (event.target.tagName === "TD") {
+                                        document
+                                            .querySelectorAll("table.emailList tbody tr")
+                                            .forEach((row) => {
+                                                row.classList.remove("highlighted");
+                                            });
+                                        event.target.parentElement.classList.toggle(
+                                            "highlighted"
+                                        );
+                                    }
+                                });
+                            });
+                        </script>
+                    </div>
+                </div>
+            </div>
+
+            <div id="mailer" class="hide window-body" style="
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+          ">
+                <br><br>
+                <div class="field-row-stacked" style="width: 100%">
+                    <label for="emails">Email To
+                    </label>
+                    <textarea id="emailTo" rows="1" placeholder="Add Emails (separated by comma)"></textarea>
+                </div>
+                <br>
+                <div class="field-row-stacked" style="width: 100%">
+                    <label for="emailSubject">Email Subject</label>
+                    <input id="emailSubject" type="text" placeholder="Enter Email Subject" />
+                </div>
+                <br>
+                <div class="field-row-stacked" style="width: 100%">
+                    <label for="emailBody">Email Body</label>
+                    <textarea id="emailBody" rows="10" placeholder="Enter Email Body"></textarea>
+                </div>
+                <br>
+                <div class="field-row-stacked" style="width: 100%">
+                    <label>Attachments</label>
+                    <div class="sunken-panel" style="height: fit-content; max-height: 10rem; width: 100%;">
+                        <table class="interactive" style="width: 100%">
+                            <thead>
+                                <tr>
+                                    <th>File Name</th>
+                                    <th>Size</th>
+                                </tr>
+                            </thead>
+                            <tbody id="emailAttachTable">
+                                <tr>
+                                    <td colspan="3" style="text-align: center"> No Attach Files Selected</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <input style="height: fit-content;" onchange="changeAttachFiles(this)" type="file" multiple
+                        id="emailAttach" value="Select Attach Files">
+                    <script>
+                        var attachFiles, table = document.getElementById("emailAttachTable");
+                        function changeAttachFiles(input) {
+                            attachFiles = input.files;
+                            table.innerHTML = "";
+                            for (const key in attachFiles) {
+                                if (Object.hasOwnProperty.call(attachFiles, key)) {
+                                    const fileDtl = attachFiles[key];
+                                    let tr = document.createElement("tr");
+                                    tr.innerHTML = `<td>${fileDtl.name}</td><td>${(fileDtl.size / 1024).toFixed(2)} KB</td>`;
+                                    table.appendChild(tr);
+                                }
+                            }
+                        }
+                    </script>
+                </div>
+                <br>
+                <div class="field-row-stacked"
+                    style="width: 100%; flex-direction: row !important; justify-content: space-around">
+                    <button id="emailClear">Clear</button>
+                    <button style="margin: 0;" id="emailSend">Send Email</button>
+                </div>
+                <script>
+                    let emailClear = document.getElementById("emailClear"),
+                        emailSend = document.getElementById("emailSend")
+
+                    emailSend.addEventListener("click", () => {
+                        let emailTo = document.getElementById("emailTo"),
+                            emailSubject = document.getElementById("emailSubject"),
+                            emailBody = document.getElementById("emailBody");
+
+                        if (emailTo.value && emailSubject.value && emailBody.value) {
+                            if(sendEmail(emailTo.value, emailSubject.value, emailBody.value, emailAttach.files)){
+                                emailTo.value = emailSubject.value = emailBody.value = "";   
+                            }
+                        }else{
+                            msgAlert("Please enter all fields")
+                        }
+                    })
+                </script>
+            </div>
+
+            <div id="help" class="hide window-body">
+                <p>You can use the following number to contact us for help</p>
+                <br /><br />
+                <ul style="list-style: none">
+                    <li>
+                        Development Team :
+                        <a href="mailto:alamgirsardar66@gmail.com">alamgirsardar@gmail.com</a><br>
+                        <a href="mailto:programmeralamgir@gmailcom">programmeralamgir@gmailcom</a>
+                    </li>
+                </ul>
+                <br /><br />
+                <p>
+                    Developed By :
+                    <a href="mailto:programmeralamgir@gmail.com">Alamgir Sardar</a>
+                </p>
+            </div>
+
+            <div class="title-bar" style="background: #000000 !important;">
+                <div class="title-bar-text">
+                    &copy;
+                    <script>document.write(APP_NAME + " " + new Date().getFullYear())</script> | All Rights Reserved
+                    <br>
+                    Developed By : <a style="color: currentColor;" href="mailto:programmeralamgir@gmailcom">Alamgir
+                        Sardar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="updateLeadsForm" class="hide" style="
+        width: 100%;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        overflow: auto;
+        padding: 1rem;
+        background-color: #00000060;
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        display: flex;
+      ">
+        <div class="window" style="margin-top: auto; width: 60%; height: fit-content">
+            <div class="title-bar">
+                <div class="title-bar-text">Update Leads Details</div>
+            </div>
+            <div class="window-body">
+                <br />
+                <form id="updateLeadsF">
+                    <input type="hidden" name="action" value="updateLead" />
+                    <input type="hidden" name="uid" id="lid" />
+
+                    <div class="field-row-stacked" style="width: 100%">
+                        <label for="updateLeadsCategory">Customer Category</label>
+                        <select name="category" id="updateLeadsCategory" required>
+                            <option value="Ayah Service">Ayah Service</option>
+                            <option value="(12 Hrs) Ayah Service">
+                                (12 Hrs) Ayah Service
+                            </option>
+                            <option value="(24 Hrs) Ayah Service">
+                                (24 Hrs) Ayah Service
+                            </option>
+                            <option value="Nurse Service">Nurse Service</option>
+                            <option value="(12 Hrs) Nurse Service">
+                                (12 Hrs) Nurse Service
+                            </option>
+                            <option value="(24 Hrs) Nurse Service">
+                                (24 Hrs) Nurse Service
+                            </option>
+                            <option value="Patient Care Service">
+                                Patient Care Service
+                            </option>
+                            <option value="(12 Hrs) Patient Care Service">
+                                (12 Hrs) Patient Care Service
+                            </option>
+                            <option value="(24 Hrs) Patient Care Service">
+                                (24 Hrs) Patient Care Service
+                            </option>
+                            <option value="Cook Service">Cook Service</option>
+                            <option value="(12 Hrs) Cook Service">
+                                (12 Hrs) Cook Service
+                            </option>
+                            <option value="(24 Hrs) Cook Service">
+                                (24 Hrs) Cook Service
+                            </option>
+                            <option value="Sinior Citizen Service">
+                                Sinior Citizen Service
+                            </option>
+                            <option value="(12 Hrs) Sinior Citizen Service">
+                                (12 Hrs) Sinior Citizen Service
+                            </option>
+                            <option value="(24 Hrs) Sinior Citizen Service">
+                                (24 Hrs) Sinior Citizen Service
+                            </option>
+                            <option value="Baby Care Service">Baby Care Service</option>
+                            <option value="(12 Hrs) Baby Care Service">
+                                (12 Hrs) Baby Care Service
+                            </option>
+                            <option value="(24 Hrs) Baby Care Service">
+                                (24 Hrs) Baby Care Service
+                            </option>
+                            <option value="Care Taker Service">Care Taker Service</option>
+                            <option value="(12 Hrs) Care Taker Service">
+                                (12 Hrs) Care Taker Service
+                            </option>
+                            <option value="(24 Hrs) Care Taker Service">
+                                (24 Hrs) Care Taker Service
+                            </option>
+                            <option value="Domestic Helper Service">
+                                Domestic Helper Service
+                            </option>
+                            <option value="(12 Hrs) Domestic Helper Service">
+                                (12 Hrs) Domestic Helper Service
+                            </option>
+                            <option value="(24 Hrs) Domestic Helper Service">
+                                (24 Hrs) Domestic Helper Service
+                            </option>
+                            <option value="Maid Service">Maid Service</option>
+                            <option value="(12 Hrs) Maid Service">
+                                (12 Hrs) Maid Service
+                            </option>
+                            <option value="(24 Hrs) Maid Service">
+                                (24 Hrs) Maid Service
+                            </option>
+                        </select>
+                    </div>
+                    <br />
+                    <div class="field-row-stacked" style="width: 100%">
+                        <label for="updateLeadsName">Customer Name</label>
+                        <input id="updateLeadsName" type="text" name="name" placeholder="Enter Customer Name"
+                            required />
+                    </div>
+                    <br />
+                    <div class="field-row-stacked" style="width: 100%">
+                        <label for="updateLeadsNumber">Customer Number</label>
+                        <input id="updateLeadsNumber" type="number" name="number" placeholder="Enter Customer Number"
+                            pattern="/^[6-9]\d{9}$/" required />
+                    </div>
+                    <br />
+                    <div class="field-row-stacked" style="width: 100%">
+                        <label for="updateLeadsLocation">Customer Location</label>
+                        <textarea id="updateLeadsLocation" rows="8" name="location"
+                            placeholder="Enter Customer Location"></textarea>
+                    </div>
+                    <br /><br />
+                    <section class="field-row" style="justify-content: flex-end">
+                        <button type="button" onclick="updateLContainer.classList.add('hide')">
+                            Close
+                        </button>
+                        <button type="submit" style="width: 200px">Update</button>
+                    </section>
+                </form>
+                <script>
+                    let updateLForm = document.getElementById("updateLeadsF");
+                    let updateLPhone = document.getElementById("updateLeadsNumber");
+                    let updateLContainer = document.getElementById("updateLeadsForm");
+
+                    updateLForm.addEventListener("submit", (e) => {
+                        e.preventDefault();
+                        if (!updateLPhone.value.match(/^[6-9]\d{9}$/)) {
+                            msgAlert(
+                                "Invalid Phone Number. Please Enter 10 Digit Indian Phone Number"
+                            );
+                            return false;
+                        } else {
+                            let dataForm = new FormData(updateLForm);
+                            dataForm.append("adminId", localStorage.getItem("adminId"));
+                            dataForm.append("adminName", localStorage.getItem("adminName"));
+                            dataForm.append("for", tabFor);
+
+                            fetch("server.php", {
+                                method: "POST",
+                                body: dataForm,
+                            })
+                                .then((res) => res.json())
+                                .then((results) => {
+                                    if (results.status == "success") {
+                                        updateLContainer.classList.add("hide");
+                                        msgAlert(results.message);
+
+                                        tabActive == 2 ? loadLeads() : loadJobs();
+                                    } else {
+                                        msgAlert(results.message);
+                                    }
+                                });
+                        }
+                    });
+                </script>
+            </div>
+        </div>
+    </div>
+
+    <div id="updateUserForm" class="hide" style="
+        width: 100%;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        overflow: auto;
+        padding: 1rem;
+        background-color: #00000060;
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        display: flex;
+      ">
+        <div class="window" style="margin-top: auto; width: 60%; height: fit-content">
+            <div class="title-bar">
+                <div class="title-bar-text">Update User Details</div>
+            </div>
+            <div class="window-body">
+                <br />
+                <form id="updateUserF">
+                    <input type="hidden" name="action" value="updateUser" />
+                    <input type="hidden" name="uid" id="uid" />
+                    <div class="field-row-stacked" style="width: 100%; align-items: center">
+                        <img width="200px" id="updateProp" src="#" alt="Picture Not Found" />
+                        <button type="button">
+                            <label for="updateBProfile"> Upload Business Profile</label>
+                        </button>
+                        <input id="updateBProfile" onchange="changeImage(this, document.getElementById('updateProp'))"
+                            name="bprop" type="file" />
+                    </div>
+                    <br /><br />
+                    <div class="field-row-stacked" style="width: 100%">
+                        <label for="updateBName">Business Name &nbsp;<small
+                                style="color: #ca0000d8; font: 0.8rem courier">*</small></label>
+                        <input id="updateBName" name="bname" type="text" placeholder="Enter Business Name" required />
+                    </div>
+                    <br />
+                    <div class="field-row-stacked" style="width: 100%">
+                        <label for="updateCName">Owner Name &nbsp;<small
+                                style="color: #ca0000d8; font: 0.8rem courier">*</small></label>
+                        <input id="updateCName" name="cname" type="text" pattern="^[a-zA-Z\s]+$"
+                            placeholder="Enter Owner Name" required />
+                    </div>
+                    <br />
+                    <div class="field-row-stacked" style="width: 100%">
+                        <label for="updateBEmail">Business Email</label>
+                        <input id="updateBEmail" name="bemail" type="email" placeholder="Enter Business Email" />
+                    </div>
+                    <br />
+                    <div class="field-row-stacked" style="width: 100%">
+                        <label for="updateBPhone">Business Phone &nbsp;<small
+                                style="color: #ca0000d8; font: 0.8rem courier">*</small></label>
+                        <input id="updateBPhone" name="bphone" type="number" pattern="/^[6-9]\d{9}$/"
+                            placeholder="Enter Business Phone" required />
+                    </div>
+                    <br />
+                    <div class="field-row-stacked" style="width: 100%">
+                        <label for="updateBAddress">Business Address &nbsp;<small
+                                style="color: #ca0000d8; font: 0.8rem courier">*</small></label>
+                        <textarea id="updateBAddress" rows="8" name="baddress" placeholder="Enter Business Address"
+                            required></textarea>
+                    </div>
+                    <div class="field-row-stacked" style="width: 100%">
+                        <label for="updateBWeb">Business Website</label>
+                        <input id="updateBWeb" type="url" name="bweb" placeholder="Enter Business Website" />
+                    </div>
+                    <br />
+                    <div class="field-row-stacked" style="width: 100%">
+                        <label>Wallet Balance (â‚¹)</label>
+                        <div id="updateCWallet" style="font-weight: bolder; font-size: 1.2rem !important">
+                            ₹ 0.0
+                        </div>
+                        <input id="updateCWalletAdd" name="bWallet" type="number" placeholder="Enter Amount" />
+                        <button type="button"
+                            onclick="updateWallet(this.parentElement.parentElement.children[1].value, this.parentElement.children['updateCWalletAdd'], this.parentElement.children[1])">
+                            Update Wallet
+                        </button>
+                    </div>
+                    <br />
+                    <div class="field-row-stacked" style="width: 100%">
+                        <label>Business Status</label>
+                        <div id="updateBVeri" style="
+                  display: flex;
+                  justify-content: start;
+                  gap: 0.5rem;
+                  align-items: center;
+                "></div>
+                    </div>
+                    <br /><br />
+                    <div class="field-row-stacked" style="width: 100%">
+                        <p>Business Pan Card</p>
+                        <input id="updateBPan" onchange="changeFile(this)" name="bpan" type="file" />
+                        <button type="button">
+                            <label for="updateBPan"> Upload Pan Card</label>
+                        </button>
+                    </div>
+                    <br /><br />
+                    <div class="field-row-stacked" style="width: 100%">
+                        <p>Business Trade License</p>
+                        <input id="updateBTrade" onchange="changeFile(this)" name="btrade" type="file" />
+                        <button type="button">
+                            <label for="updateBTrade"> Upload Trade License</label>
+                        </button>
+                    </div>
+                    <br /><br />
+                    <div class="field-row-stacked" style="width: 100%">
+                        <p>Business Aadhar Card</p>
+                        <input id="updateBAadhar" onchange="changeFile(this)" name="baadhar" type="file" />
+                        <button type="button">
+                            <label for="updateBAadhar"> Upload Aadhar Card</label>
+                        </button>
+                    </div>
+                    <br />
+                    <br /><br />
+                    <section class="field-row" style="justify-content: flex-end">
+                        <button type="button" id="updateClose">Close</button>
+                        <button type="submit" style="width: 200px">Update</button>
+                    </section>
+                </form>
+                <script>
+                    let updateForm = document.getElementById("updateUserF");
+                    let updateBPhone = document.getElementById("updateBPhone");
+                    let updateFormContainer = document.getElementById("updateUserForm");
+
+                    updateForm.addEventListener("submit", (e) => {
+                        e.preventDefault();
+                        if (/^[6-9]\d{9}$/.test(updateBPhone.value) == false) {
+                            msgAlert(
+                                "Invalid Phone Number. Please Enter 10 Digit Indian Phone Number"
+                            );
+                            return false;
+                        } else {
+                            let dataForm = new FormData(updateForm);
+                            dataForm.append("adminId", localStorage.getItem("adminId"));
+                            dataForm.append("adminName", localStorage.getItem("adminName"));
+
+                            fetch("server.php", {
+                                method: "POST",
+                                body: dataForm,
+                            })
+                                .then((res) => res.json())
+                                .then((results) => {
+                                    if (results.status == "success") {
+                                        updateFormContainer.classList.add("hide");
+                                        msgAlert(results.message);
+                                        loadUsers();
+                                    } else {
+                                        msgAlert(results.message);
+                                    }
+                                });
+                        }
+                    });
+                </script>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let tabs = document.querySelectorAll("menu#tabs li");
+
+        let dashboard = document.getElementById("dashboard");
+        let mailList = document.getElementById("mailList");
+        let mailer = document.getElementById("mailer");
+        let help = document.getElementById("help");
+
+        let totalEmailCount = document.querySelectorAll(".totalEmailCount");
+        let totalSendEmailCount = document.querySelectorAll(".totalSendEmailCount");
+
+        let adminIdC = document.getElementById("adminId");
+
+        let login = document.getElementById("login");
+
+        login.addEventListener("click", () => {
+            if (localStorage.getItem("adminId") == null) {
+                let adminId = prompt("Enter Admin Id");
+                let adminName = prompt("Enter Admin User Name");
+                if (adminId && adminName) {
+                    let empForm = new FormData();
+                    empForm.append("adminId", adminId);
+                    empForm.append("adminName", adminName);
+                    empForm.append("action", "adminLogin");
+
+                    fetch("server.php", {
+                        method: "POST",
+                        body: empForm,
+                    })
+                        .then((res) => res.json())
+                        .then((data) => {
+                            if (data.status == "success") {
+                                msgAlert(data.message);
+                                localStorage.setItem("adminId", adminId);
+                                localStorage.setItem("adminName", adminName);
+                                localStorage.setItem("adminEmail", data.data.email);
+                                localStorage.setItem("adminFullName", data.data.name);
+
+                                adminIdC.children[0].innerHTML = data.data.name;
+                                adminIdC.classList.remove("hide");
+                                login.innerHTML = "Logout";
+                            } else {
+                                msgAlert(data.message);
+                            }
+                        });
+                }
+            } else {
+                msgConfirm("Are you sure you want to logout?", () => {
+                    localStorage.clear();
+                    adminIdC.classList.add("hide");
+                    login.innerHTML = "Login";
+                    msgAlert("Logout Successfully");
+                    window.location.reload();
+                });
+            }
+        });
+
+        tabs.forEach((tab) => {
+            tab.addEventListener("click", () => {
+                tabs.forEach((tab) => {
+                    tab.removeAttribute("aria-selected");
+                });
+                tab.setAttribute("aria-selected", "true");
+
+                if (tab.dataset.name === "dashboard") {
+                    dashboard.classList.remove("hide");
+                    mailList.classList.add("hide");
+                    mailer.classList.add("hide");
+                    help.classList.add("hide");
+                } else if (tab.dataset.name === "mailList") {
+                    dashboard.classList.add("hide");
+                    mailList.classList.remove("hide");
+                    mailer.classList.add("hide");
+                    help.classList.add("hide");
+
+                    loadEmailList()
+                } else if (tab.dataset.name === "mailer") {
+                    dashboard.classList.add("hide");
+                    mailList.classList.add("hide");
+                    mailer.classList.remove("hide");
+                    help.classList.add("hide");
+                } else if (tab.dataset.name === "help") {
+                    dashboard.classList.add("hide");
+                    mailList.classList.add("hide");
+                    mailer.classList.add("hide");
+                    help.classList.remove("hide");
+                }
+            });
+        });
+
+        if (localStorage.getItem("adminId") && localStorage.getItem("adminName")) {
+            adminId.children[0].innerHTML = localStorage.getItem("adminFullName");
+            adminId.classList.remove("hide");
+            login.innerHTML = "Logout";
+        }
+
+        function setTotalEmailCount(count) {
+            totalEmailCount.forEach((data) => {
+                data.innerHTML = count;
+            });
+        }
+
+        function setTotalSendEmailCount(count) {
+            totalSendEmailCount.forEach((data) => {
+                data.innerHTML = count;
+            });
+        }
+
+        function msgAlert(msg) {
+            document.getElementById("alertMsg").innerHTML = msg;
+            document.getElementById("alertOk").addEventListener("click", () => {
+                document.getElementById("alert").classList.add("hide");
+            });
+            document.getElementById("alert").classList.remove("hide");
+        }
+
+        function loadEmailList() {
+            let emailListTable = document.getElementById("emailTable");
+            let bodyForm = new FormData();
+            bodyForm.append("action", "getEmailList");
+            bodyForm.append("adminId", localStorage.getItem("adminId"));
+            bodyForm.append("adminName", localStorage.getItem("adminName"));
+
+            emailListTable.innerHTML = `<tr><td colspan="6">Fetching Data From Server...</td></tr>`;
+
+            fetch("server.php", {
+                method: "POST",
+                body: bodyForm,
+            })
+                .then((res) => res.json())
+                .then((results) => {
+                    if (results.status == "success") {
+                        emailListTable.innerHTML = "";
+                        setTotalEmailCount(results.data.length);
+                        results.data.forEach((data) => {
+                            let tr = document.createElement("tr");
+                            tr.innerHTML = `
+                                    <td>#ID-${data.id}</td>
+                                    <td>${data.name}</td>
+                                    <td onclick="prompt('Email Address', this.innerText)">${data.email}</td>
+                                    <td>${data.des}</td>
+                                    <td>${data.date}</td>
+                                    <td>
+                                        <button data-eid="${data.id}" onclick="alert('Coming soon')">Edit</button>
+                                        <button data-eid="${data.id}" onclick="alert('Coming soon')">Delete</button>
+                                        <button data-eid="${data.id}" onclick="alert('Coming soon')">Send Email</button>
+                                    </td>`;
+                            emailListTable.appendChild(tr);
+                        });
+                    } else {
+                        emailListTable.innerHTML = `<tr><td colspan="6">No Emails Found... Please Add Email or wait for emails to be added.</td></tr>`;
+                        msgAlert(results.message);
+                    }
+                });
+        }
+
+        function sendEmail(emailTo = "", emailSubject = "", emailBody = "", attachment = {}) {
+            let bodyForm = new FormData();
+            bodyForm.append("action", "sendMail");
+            bodyForm.append("recipients", emailTo);
+            bodyForm.append("subject", emailSubject);
+            bodyForm.append("body", emailBody);
+            for (let i = 0; i < attachment.length; i++) {
+                bodyForm.append('attachment[]', attachment[i]);
+            }
+            bodyForm.append("adminId", localStorage.getItem("adminId"));
+            bodyForm.append("adminName", localStorage.getItem("adminName"));
+    
+            fetch("server.php", {
+                method: "POST",
+                body: bodyForm
+            }).then((res) => res.json()).then((results) => {
+                if(results.status == "success"){
+                    msgAlert(results.message);
+                    return true;
+                }else{
+                    msgAlert(results.message);
+                    return false;
+                }
+            })
+        }
+    </script>
+</body>
+
+</html>
